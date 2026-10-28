@@ -1,7 +1,9 @@
 import React, { FunctionComponent } from 'react';
-import JSONDiff from './JSONDiff.js';
+import JSONDiff, { diffFilterOptions } from './JSONDiff.js';
+import SearchableTree from './SearchableTree.js';
 import { TabComponentProps } from '../ActionPreview.js';
 import { Action } from 'redux';
+import type { Delta } from 'jsondiffpatch';
 
 const DiffTab: FunctionComponent<
   TabComponentProps<unknown, Action<string>>
@@ -12,17 +14,32 @@ const DiffTab: FunctionComponent<
   labelRenderer,
   isWideLayout,
   dataTypeKey,
+  sortStateTreeAlphabetically,
+  monitorState,
+  updateMonitorState,
 }) => (
-  <JSONDiff
-    {...{
-      delta,
-      base16Theme,
-      invertTheme,
-      labelRenderer,
-      isWideLayout,
-      dataTypeKey,
-    }}
-  />
+  <SearchableTree
+    data={delta}
+    monitorState={monitorState}
+    updateMonitorState={updateMonitorState}
+    sortByDefault={sortStateTreeAlphabetically}
+    filterOptions={diffFilterOptions}
+  >
+    {({ data, sortObjectKeys, shouldExpandNodeInitially }) => (
+      <JSONDiff
+        delta={data as Delta | null | undefined | false}
+        {...{
+          base16Theme,
+          invertTheme,
+          labelRenderer,
+          isWideLayout,
+          dataTypeKey,
+          sortObjectKeys,
+          shouldExpandNodeInitially,
+        }}
+      />
+    )}
+  </SearchableTree>
 );
 
 export default DiffTab;

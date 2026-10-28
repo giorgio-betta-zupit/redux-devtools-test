@@ -1,6 +1,7 @@
 import {
   CustomAction,
   DispatchAction as AppDispatchAction,
+  isSignalStore,
   LibConfig,
   LIFTED_ACTION,
   nonReduxDispatch,
@@ -579,33 +580,64 @@ function onConnect<S, A extends Action<string>>(port: chrome.runtime.Port) {
     port.onMessage.addListener(listener);
     port.onDisconnect.addListener(disconnect('panel', id, port, listener));
 
-    const { current } = store.getState().instances;
-    if (current !== 'default') {
-      const connectionId = Object.entries(
-        store.getState().instances.connections,
-      ).find(([, instanceIds]) => instanceIds.includes(current))?.[0];
-      const options = store.getState().instances.options[current];
-      const state = store.getState().instances.states[current];
-      const { actionsById, computedStates, committedState, ...rest } = state;
-      toMonitors({
-        type: UPDATE_STATE,
-        request: {
-          type: 'STATE',
-          payload: rest as Omit<
-            LiftedState<S, A, unknown>,
-            'actionsById' | 'computedStates' | 'committedState'
-          >,
-          source: '@devtools-page',
-          instanceId:
-            typeof current === 'number' ? current.toString() : current,
-          actionsById: stringifyJSON(actionsById, options.serialize),
-          computedStates: stringifyJSON(computedStates, options.serialize),
-          committedState: typeof committedState !== 'undefined',
-        },
-        id: connectionId ?? current,
-      });
+    const { current, connections: instanceConnections } =
+      store.getState().instances;
+    // `current` is never a Signal Store, so also replay the Signal Stores of
+    // the inspected tab: a panel opened after the page still lists them.
+    const inspectedTab = port.name.slice('monitor'.length);
+    if (inspectedTab) {
+      Object.entries(instanceConnections)
+        .filter(
+          ([connectionId]) =>
+            connectionId === inspectedTab ||
+            connectionId.startsWith(`${inspectedTab}-`),
+        )
+        .flatMap(([, instanceIds]) => instanceIds)
+        .filter((instanceId) =>
+          isSignalStore(store.getState().instances.options[instanceId]),
+        )
+        .forEach((instanceId) => replayInstanceToMonitors<S, A>(instanceId));
     }
+    if (current !== 'default') replayInstanceToMonitors<S, A>(current);
   }
+}
+
+function replayInstanceToMonitors<S, A extends Action<string>>(
+  instanceId: string | number,
+) {
+  const instances = store.getState().instances;
+  const connectionId = Object.entries(instances.connections).find(
+    ([, instanceIds]) => instanceIds.includes(instanceId),
+  )?.[0];
+  const options = instances.options[instanceId];
+  const state = instances.states[instanceId];
+  const { actionsById, computedStates, committedState, ...rest } = state;
+  toMonitors<S, A>({
+    type: UPDATE_STATE,
+    request: {
+      type: 'STATE',
+      payload: rest as Omit<
+        LiftedState<S, A, unknown>,
+        'actionsById' | 'computedStates' | 'committedState'
+      >,
+      source: '@devtools-page',
+      instanceId:
+        typeof instanceId === 'number' ? instanceId.toString() : instanceId,
+      // Keeps the instance's name, features and library type in the panel.
+      libConfig: {
+        name: options.name?.toString(),
+        type: options.explicitLib,
+        features: options.features,
+        serialize: options.serialize,
+        actionCreators:
+          options.actionCreators && JSON.stringify(options.actionCreators),
+      },
+      actionsById: stringifyJSON(actionsById, options.serialize),
+      computedStates: stringifyJSON(computedStates, options.serialize),
+      committedState: typeof committedState !== 'undefined',
+    },
+    id: connectionId ?? instanceId,
+  });
 }
 
 chrome.runtime.onConnect.addListener(onConnect);

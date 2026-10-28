@@ -4,6 +4,7 @@ import {
   CHANGE_SECTION,
   CHANGE_THEME,
   SELECT_INSTANCE,
+  SELECT_SIGNAL_STORE,
   SELECT_MONITOR,
   UPDATE_MONITOR_STATE,
   LIFTED_ACTION,
@@ -162,6 +163,9 @@ interface LiftedActionActionBase {
   action?: DispatchAction | string | CustomAction;
   state?: string;
   toAll?: boolean;
+  // Set when the extension's panel forwards the action to the background,
+  // whose own selection does not follow the panel's.
+  instanceId?: string | number;
 }
 export interface LiftedActionDispatchAction extends LiftedActionActionBase {
   type: typeof LIFTED_ACTION;
@@ -222,6 +226,16 @@ export interface SelectInstanceAction {
 }
 export function selectInstance(selected: string): SelectInstanceAction {
   return { type: SELECT_INSTANCE, selected };
+}
+
+export interface SelectSignalStoreAction {
+  type: typeof SELECT_SIGNAL_STORE;
+  selected: string | number | null;
+}
+export function selectSignalStore(
+  selected: string | number | null,
+): SelectSignalStoreAction {
+  return { type: SELECT_SIGNAL_STORE, selected };
 }
 
 export interface SelectMonitorAction {
@@ -489,6 +503,7 @@ export type CoreStoreActionWithoutUpdateStateOrLiftedAction =
   | ChangeStateTreeSettingsAction
   | MonitorActionAction
   | SelectInstanceAction
+  | SelectSignalStoreAction
   | SelectMonitorAction
   | UpdateMonitorStateAction
   | ExportAction

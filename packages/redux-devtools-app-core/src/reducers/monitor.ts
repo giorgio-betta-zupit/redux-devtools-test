@@ -15,6 +15,7 @@ export interface MonitorStateMonitorState {
   selectedActionId?: number | null;
   startActionId?: number | null;
   inspectedActionPath?: string[];
+  treeSearchValue?: string;
   __overwritten__?: string;
 }
 export interface MonitorState {
@@ -111,6 +112,8 @@ export function monitor(
           startActionId: null,
           inspectedActionPath: [],
           inspectedStatePath: [],
+          // A stale filter would hide most of the state of the new session
+          treeSearchValue: undefined,
         },
       };
     }

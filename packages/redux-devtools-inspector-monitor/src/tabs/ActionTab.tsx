@@ -3,6 +3,7 @@ import { JSONTree } from 'react-json-tree';
 import { Action } from 'redux';
 import getItemString from './getItemString.js';
 import getJsonTreeTheme from './getJsonTreeTheme.js';
+import SearchableTree from './SearchableTree.js';
 import { TabComponentProps } from '../ActionPreview.js';
 
 const ActionTab: FunctionComponent<
@@ -14,17 +15,32 @@ const ActionTab: FunctionComponent<
   labelRenderer,
   dataTypeKey,
   isWideLayout,
+  sortStateTreeAlphabetically,
+  monitorState,
+  updateMonitorState,
 }) => (
-  <JSONTree
-    labelRenderer={labelRenderer}
-    theme={getJsonTreeTheme(base16Theme)}
+  <SearchableTree
     data={action}
-    getItemString={(type, data) =>
-      getItemString(type, data, dataTypeKey, isWideLayout)
-    }
-    invertTheme={invertTheme}
-    hideRoot
-  />
+    monitorState={monitorState}
+    updateMonitorState={updateMonitorState}
+    sortByDefault={sortStateTreeAlphabetically}
+  >
+    {({ data, sortObjectKeys, shouldExpandNodeInitially, valueRenderer }) => (
+      <JSONTree
+        labelRenderer={labelRenderer}
+        theme={getJsonTreeTheme(base16Theme)}
+        data={data}
+        getItemString={(type, data) =>
+          getItemString(type, data, dataTypeKey, isWideLayout)
+        }
+        invertTheme={invertTheme}
+        hideRoot
+        sortObjectKeys={sortObjectKeys}
+        shouldExpandNodeInitially={shouldExpandNodeInitially}
+        valueRenderer={valueRenderer}
+      />
+    )}
+  </SearchableTree>
 );
 
 export default ActionTab;

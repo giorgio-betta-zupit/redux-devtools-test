@@ -5,6 +5,7 @@ import {
   SET_STATE,
   LIFTED_ACTION,
   SELECT_INSTANCE,
+  SELECT_SIGNAL_STORE,
   REMOVE_INSTANCE,
   TOGGLE_PERSIST,
   TOGGLE_SYNC,
@@ -58,6 +59,7 @@ export interface State {
 
 export interface InstancesState {
   selected: string | number | null;
+  selectedSignalStore: string | number | null;
   current: string | number;
   sync: boolean;
   connections: { [id: string]: (string | number)[] };
@@ -66,8 +68,17 @@ export interface InstancesState {
   persisted?: boolean;
 }
 
+// NgRx Signal Stores connect with `type: 'signalStore'`. They are picked from
+// their own selector and never become the autoselected `current` instance, so
+// the Redux instance list keeps working as before.
+export const SIGNAL_STORE_LIB = 'signalStore';
+
+export const isSignalStore = (options: Options | undefined) =>
+  options?.explicitLib === SIGNAL_STORE_LIB;
+
 export const instancesInitialState: InstancesState = {
   selected: null,
+  selectedSignalStore: null,
   current: 'default',
   sync: false,
   connections: {},
@@ -211,11 +222,12 @@ function updateState(
 
 export function dispatchAction(
   state: InstancesState,
-  { action }: LiftedActionDispatchAction,
+  { action, instanceId }: LiftedActionDispatchAction,
 ) {
   if (action.type === 'JUMP_TO_STATE' || action.type === 'JUMP_TO_ACTION') {
-    const id = state.selected || state.current;
+    const id = instanceId ?? getActiveInstance(state);
     const liftedState = state.states[id];
+    if (!liftedState) return state;
     const currentStateIndex =
       action.type === 'JUMP_TO_STATE'
         ? action.index
@@ -239,6 +251,7 @@ function removeState(state: InstancesState, connectionId: string | number) {
   const options = { ...state.options };
   const states = { ...state.states };
   let selected = state.selected;
+  let selectedSignalStore = state.selectedSignalStore;
   let current = state.current;
   let sync = state.sync;
 
@@ -248,16 +261,20 @@ function removeState(state: InstancesState, connectionId: string | number) {
       selected = null;
       sync = false;
     }
+    if (id === selectedSignalStore) selectedSignalStore = null;
     if (id === current) {
-      const inst = Object.keys(connections)[0];
-      if (inst) current = connections[inst][0];
-      else current = 'default';
+      current =
+        Object.values(connections)
+          .flat()
+          .find((instanceId) => !isSignalStore(options[instanceId])) ??
+        'default';
     }
     delete options[id];
     delete states[id];
   });
   return {
     selected,
+    selectedSignalStore,
     current,
     sync,
     connections,
@@ -328,7 +345,7 @@ export function instances(
 
       return {
         ...state,
-        current,
+        current: isSignalStore(options[current]) ? state.current : current,
         connections,
         options,
         states: updateState(
@@ -355,12 +372,14 @@ export function instances(
       return { ...state, sync: !state.sync };
     case SELECT_INSTANCE:
       return { ...state, selected: action.selected, sync: false };
+    case SELECT_SIGNAL_STORE:
+      return { ...state, selectedSignalStore: action.selected, sync: false };
     case REMOVE_INSTANCE:
       return removeState(state, action.id);
     case LIFTED_ACTION: {
       if (action.message === 'DISPATCH') return dispatchAction(state, action);
       if (action.message === 'IMPORT') {
-        const id = state.selected || state.current;
+        const id = action.instanceId ?? getActiveInstance(state);
         if (state.options[id].features.import === true) {
           return {
             ...state,
@@ -380,5 +399,10 @@ export function instances(
   }
 }
 
-export const getActiveInstance = (instances: InstancesState) =>
-  instances.selected || instances.current;
+// A selected Signal Store takes precedence; clearing it falls back to the
+// Redux instance selection.
+export function getActiveInstance(instances: InstancesState) {
+  return (
+    instances.selectedSignalStore || instances.selected || instances.current
+  );
+}

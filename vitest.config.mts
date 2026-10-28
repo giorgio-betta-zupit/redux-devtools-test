@@ -72,6 +72,7 @@ export default defineConfig({
       project('react-base16-styling', 'packages/react-base16-styling'),
       project('react-json-tree', 'packages/react-json-tree'),
       project('core', 'packages/redux-devtools'),
+      project('inspector-monitor', 'packages/redux-devtools-inspector-monitor'),
       project('app-core', 'packages/redux-devtools-app-core', {
         environment: 'jsdom',
         setupFiles: ['test/setup.ts'],

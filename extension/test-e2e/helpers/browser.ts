@@ -85,7 +85,9 @@ export async function startFixtureServer(): Promise<FixtureServer> {
     '../../node_modules/redux/dist/redux.mjs',
   );
   const server: Server = createServer((req, res) => {
-    const urlPath = req.url === '/' ? '/index.html' : (req.url ?? '/');
+    // The query only tells tabs on the same page apart.
+    const pathname = (req.url ?? '/').split('?')[0];
+    const urlPath = pathname === '/' ? '/index.html' : pathname;
     const filePath =
       urlPath === '/redux.mjs' ? reduxEsm : path.join(fixtureDir, urlPath);
     readFile(filePath).then(

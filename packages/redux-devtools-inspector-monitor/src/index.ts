@@ -7,6 +7,7 @@ export type { Tab, TabComponentProps } from './ActionPreview.js';
 export type {
   DevtoolsInspectorAction,
   DevtoolsInspectorState,
+  TreeSortOrder,
 } from './redux.js';
 export type { Base16ThemeName } from './utils/themes.js';
 export * as inspectorThemes from './themes/index.js';

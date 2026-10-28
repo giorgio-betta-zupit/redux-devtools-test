@@ -6,6 +6,7 @@ import RecordButton from './buttons/RecordButton.js';
 import PersistButton from './buttons/PersistButton.js';
 import LockButton from './buttons/LockButton.js';
 import InstanceSelector from './InstanceSelector.js';
+import SignalStoreSelector from './SignalStoreSelector.js';
 import SyncButton from './buttons/SyncButton.js';
 import { Options, State } from '../reducers/instances.js';
 
@@ -90,6 +91,7 @@ export default class TopButtons extends Component<Props> {
         <Divider />
         <InstanceSelector />
         {features.sync && <SyncButton />}
+        <SignalStoreSelector />
       </Toolbar>
     );
   }

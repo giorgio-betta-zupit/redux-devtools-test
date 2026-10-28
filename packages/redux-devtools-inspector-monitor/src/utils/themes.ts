@@ -39,6 +39,8 @@ declare module '@emotion/react' {
     LINK_COLOR: string;
     LINK_HOVER_COLOR: string;
     ERROR_COLOR: string;
+    SEARCH_MATCH_COLOR: string;
+    TOGGLE_ON_COLOR: string;
   }
 }
 
@@ -66,6 +68,8 @@ const colorMap = (theme: Base16Theme) => ({
   LINK_COLOR: rgba(theme.base0E, 90),
   LINK_HOVER_COLOR: theme.base0E,
   ERROR_COLOR: theme.base08,
+  SEARCH_MATCH_COLOR: rgba(theme.base0A, 50),
+  TOGGLE_ON_COLOR: theme.base0D,
 });
 
 export function createInspectorMonitorThemeFromBase16Theme(

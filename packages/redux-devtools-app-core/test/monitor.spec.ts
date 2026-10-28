@@ -36,6 +36,20 @@ describe('monitor reducer REHYDRATE', () => {
     });
   });
 
+  it('clears the tree filter', () => {
+    const persisted: MonitorState = {
+      selected: 'InspectorMonitor',
+      sliderIsOpen: true,
+      dispatcherIsOpen: false,
+      monitorState: { tabName: 'State', treeSearchValue: 'user' },
+    };
+
+    const next = monitor(undefined, rehydrate(persisted));
+
+    expect(next.monitorState!.treeSearchValue).toBeUndefined();
+    expect(next.monitorState!.tabName).toBe('State');
+  });
+
   it('keeps the default state when nothing was persisted for monitor', () => {
     const initial = monitor(undefined, {
       type: '@@INIT',

@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import { JSONTree } from 'react-json-tree';
-import type { LabelRenderer, ShouldExpandNodeInitially } from 'react-json-tree';
+import type {
+  LabelRenderer,
+  ShouldExpandNodeInitially,
+  SortObjectKeys,
+} from 'react-json-tree';
 import { stringify } from 'javascript-stringify';
 import type { Delta } from 'jsondiffpatch';
 import type { Base16Theme } from 'react-base16-styling';
@@ -9,6 +13,8 @@ import type { Interpolation, Theme } from '@emotion/react';
 import type { JSX } from '@emotion/react/jsx-runtime';
 import getItemString from './getItemString.js';
 import getJsonTreeTheme from './getJsonTreeTheme.js';
+import { primitiveToString } from '../utils/filterTree.js';
+import type { FilterTreeOptions } from '../utils/filterTree.js';
 
 function stringifyAndShrink(val: any, isWideLayout?: boolean) {
   if (val === null) {
@@ -48,6 +54,18 @@ function prepareDelta(value: any) {
   return value;
 }
 
+export const diffFilterOptions: Omit<FilterTreeOptions, 'searchValues'> = {
+  postprocessValue: prepareDelta,
+  isCustomNode: Array.isArray,
+  // Match what the diff renders: both sides of an update, otherwise the added or removed value
+  valueToString: (value) =>
+    Array.isArray(value)
+      ? (value.length === 2 ? value : value.slice(0, 1))
+          .map((val) => stringify(val) ?? 'undefined')
+          .join(' ')
+      : primitiveToString(value),
+};
+
 const diffCss: Interpolation<Theme> = (theme) => ({
   padding: '2px 3px',
   borderRadius: '3px',
@@ -65,6 +83,8 @@ interface Props {
   labelRenderer: LabelRenderer;
   isWideLayout: boolean;
   dataTypeKey: string | symbol | undefined;
+  sortObjectKeys?: SortObjectKeys;
+  shouldExpandNodeInitially?: ShouldExpandNodeInitially;
 }
 
 interface State {
@@ -117,7 +137,9 @@ export default class JSONDiff extends Component<Props, State> {
         valueRenderer={this.valueRenderer}
         postprocessValue={prepareDelta}
         isCustomNode={Array.isArray}
-        shouldExpandNodeInitially={expandFirstLevel}
+        shouldExpandNodeInitially={
+          this.props.shouldExpandNodeInitially ?? expandFirstLevel
+        }
         hideRoot
       />
     );

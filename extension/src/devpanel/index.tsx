@@ -86,6 +86,8 @@ function renderNA() {
       chrome.devtools.inspectedWindow
     ) {
       chrome.devtools.inspectedWindow.getResources((resources) => {
+        // A store may have connected while the resources were loading.
+        if (rendered) return;
         if (resources[0].url.substr(0, 4) === 'file') {
           message = (
             <div style={messageStyle}>
@@ -141,7 +143,10 @@ function init() {
       if (message.type === 'NA') {
         // TODO Double-check this now that the name is different
         if (message.id === name) renderNA();
-        else store!.dispatch({ type: REMOVE_INSTANCE, id: message.id });
+        // Another tab went away. Before its first store this panel has no
+        // instances to remove; a tab holding only Signal Stores is never
+        // replayed to a newly opened panel, so this can be its first message.
+        else store?.dispatch({ type: REMOVE_INSTANCE, id: message.id });
       } else {
         if (!rendered) renderDevTools();
 

@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "inspector-demo",
+      "runtimeExecutable": "corepack",
+      "runtimeArgs": [
+        "pnpm",
+        "--dir",
+        "packages/redux-devtools-inspector-monitor/demo",
+        "exec",
+        "webpack",
+        "serve",
+        "--port",
+        "8091"
+      ],
+      "port": 8091
+    }
+  ]
+}

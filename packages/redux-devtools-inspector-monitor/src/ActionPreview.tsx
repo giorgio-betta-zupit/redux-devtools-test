@@ -10,6 +10,7 @@ import ActionPreviewHeader from './ActionPreviewHeader.js';
 import DiffTab from './tabs/DiffTab.js';
 import StateTab from './tabs/StateTab.js';
 import ActionTab from './tabs/ActionTab.js';
+import highlightMatches from './utils/highlightMatches.js';
 
 export interface TabComponentProps<S, A extends Action<string>> {
   labelRenderer: LabelRenderer;
@@ -187,11 +188,13 @@ class ActionPreview<S, A extends Action<string>> extends Component<
   }
 
   labelRenderer: LabelRenderer = ([key, ...rest], nodeType, expanded) => {
-    const { onInspectPath, inspectedPath } = this.props;
+    const { onInspectPath, inspectedPath, monitorState } = this.props;
 
     return (
       <span>
-        <span>{key}</span>
+        <span>
+          {highlightMatches(String(key), monitorState.treeSearchValue)}
+        </span>
         <span
           css={(theme) => ({
             fontSize: '0.7em',

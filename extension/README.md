@@ -229,6 +229,7 @@ See [integrations](docs/Integrations.md) and [the blog post](https://medium.com/
 - [FAQ](docs/FAQ.md)
 - Features
   - [Trace actions calls](docs/Features/Trace.md)
+  - [NgRx Signal Store](docs/Features/SignalStore.md)
 - [Troubleshooting](docs/Troubleshooting.md)
 - [Articles](docs/Articles.md)
 - [Videos](docs/Videos.md)

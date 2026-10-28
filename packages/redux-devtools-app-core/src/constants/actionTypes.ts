@@ -5,6 +5,7 @@ export const CHANGE_STATE_TREE_SETTINGS = 'main/CHANGE_STATE_TREE_SETTINGS';
 export const UPDATE_STATE = 'devTools/UPDATE_STATE';
 export const SET_STATE = 'devTools/SET_STATE';
 export const SELECT_INSTANCE = 'devTools/SELECT_INSTANCE';
+export const SELECT_SIGNAL_STORE = 'devTools/SELECT_SIGNAL_STORE';
 export const REMOVE_INSTANCE = 'devTools/REMOVE_INSTANCE';
 export const CLEAR_INSTANCES = 'devTools/CLEAR_INSTANCES';
 export const LIFTED_ACTION = 'devTools/LIFTED_ACTION';

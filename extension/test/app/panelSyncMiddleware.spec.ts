@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   SELECT_INSTANCE,
+  SIGNAL_STORE_LIB,
   UPDATE_STATE,
   type StoreAction,
   type StoreState,
@@ -169,5 +170,21 @@ describe('panelSyncMiddleware instance pinning', () => {
     dispatch({ type: SELECT_INSTANCE, selected: '' } as StoreAction);
     dispatch(updateState(7, '7/1'));
     expect(selections(seen)).toEqual(['']);
+  });
+
+  it('pins the Redux store when the tab also has Signal Stores', () => {
+    const { seen, dispatch } = setup(
+      makeInstances({
+        current: '7/1',
+        connections: { 7: ['7/1', '7/2', '7/3'] },
+        options: {
+          '7/1': { features: {} },
+          '7/2': { features: {}, explicitLib: SIGNAL_STORE_LIB },
+          '7/3': { features: {}, explicitLib: SIGNAL_STORE_LIB },
+        },
+      }),
+    );
+    dispatch(updateState(7, '7/2'));
+    expect(selections(seen)).toEqual(['7/1']);
   });
 });

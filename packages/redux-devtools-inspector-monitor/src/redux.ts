@@ -16,6 +16,8 @@ export function updateMonitorState(
 
 export type DevtoolsInspectorAction = UpdateMonitorStateAction;
 
+export type TreeSortOrder = 'none' | 'asc' | 'desc';
+
 export interface DevtoolsInspectorState {
   selectedActionId: number | null;
   startActionId: number | null;
@@ -23,6 +25,9 @@ export interface DevtoolsInspectorState {
   inspectedStatePath: (string | number)[];
   tabName: string;
   searchValue?: string;
+  treeSearchValue?: string;
+  treeSearchInValues?: boolean;
+  treeSortOrder?: TreeSortOrder;
 }
 
 export const DEFAULT_STATE: DevtoolsInspectorState = {

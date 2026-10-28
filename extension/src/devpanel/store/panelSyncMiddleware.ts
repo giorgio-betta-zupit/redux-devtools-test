@@ -1,5 +1,6 @@
 import {
   getActiveInstance,
+  isSignalStore,
   LIFTED_ACTION,
   SELECT_INSTANCE,
   StoreAction,
@@ -25,7 +26,7 @@ function selectInstance(
 ) {
   const instances = store.getState().instances;
   if (instances.current === 'default') return;
-  const instanceId = getSoleInstanceForTab(tabId, instances.connections);
+  const instanceId = getSoleInstanceForTab(tabId, instances);
   if (instanceId !== undefined) {
     next({ type: SELECT_INSTANCE, selected: instanceId });
   }
@@ -33,19 +34,25 @@ function selectInstance(
 
 // Background keys connections by `tabId` for the top frame and
 // `${tabId}-${frameId}` for iframes. Prefer a lone top-frame store; otherwise
-// fall back to a lone store anywhere in the tab's frames.
+// fall back to a lone store anywhere in the tab's frames. Signal Stores have
+// their own selector, so they are ignored here.
 export function getSoleInstanceForTab(
   tabId: number,
-  connections: StoreState['instances']['connections'],
+  {
+    connections,
+    options,
+  }: Pick<StoreState['instances'], 'connections' | 'options'>,
 ): string | number | undefined {
-  const topFrame = connections[tabId];
-  if (topFrame && topFrame.length > 0) {
+  const reduxInstances = (instanceIds: (string | number)[]) =>
+    instanceIds.filter((id) => !isSignalStore(options[id]));
+  const topFrame = reduxInstances(connections[tabId] ?? []);
+  if (topFrame.length > 0) {
     return topFrame.length === 1 ? topFrame[0] : undefined;
   }
   const framePrefix = `${tabId}-`;
   const inFrames = Object.entries(connections)
     .filter(([id]) => id.startsWith(framePrefix))
-    .flatMap(([, instanceIds]) => instanceIds);
+    .flatMap(([, instanceIds]) => reduxInstances(instanceIds));
   return inFrames.length === 1 ? inFrames[0] : undefined;
 }
 
